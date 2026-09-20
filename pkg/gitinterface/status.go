@@ -126,7 +126,7 @@ func (r *Repository) Status() (map[string]FileStatus, error) {
 
 		// then, we have a single space followed by the path, ignore space and
 		// read in the rest as the filepath
-		filePath := token[2:]
+		filePath := strings.TrimSpace(token[2:])
 
 		xStatus, err := NewStatusCodeFromByte(xb)
 		if err != nil {
@@ -138,7 +138,7 @@ func (r *Repository) Status() (map[string]FileStatus, error) {
 			return nil, fmt.Errorf("unable to parse status code '%c' for path '%s': %w", yb, filePath, err)
 		}
 
-		status := FileStatus{X: yStatus, Y: xStatus}
+		status := FileStatus{X: xStatus, Y: yStatus}
 
 		statuses[filePath] = status
 
@@ -149,6 +149,7 @@ func (r *Repository) Status() (map[string]FileStatus, error) {
 			if i+1 >= len(tokens) || len(tokens[i+1]) == 0 {
 				return nil, fmt.Errorf("unable to parse rename/copy status for path '%s': missing source path", filePath)
 			}
+			i++
 		}
 	}
 
